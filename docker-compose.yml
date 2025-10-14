@@ -1,0 +1,45 @@
+# docker-compose.yml
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: company_portal
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 09062004
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - db
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: company_portal
+      DB_USERNAME: postgres
+      DB_PASSWORD: 09062004
+    command: ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://host.docker.internal:8000
+    command: ["npm", "run", "dev"]
+
+volumes:
+  pgdata:
