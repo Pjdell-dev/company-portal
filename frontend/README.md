@@ -123,5 +123,4 @@ npm run dev
 - Backend logs: `backend/storage/logs/laravel.log`
 - Browser DevTools: Network / Application / Console
 
----
-If you want, I can also add `frontend/src/lib/api.js` (the helper shown above), create a short `backend/README-auth.md` with the minimal instructions, or update the `DatabaseSeeder` to ensure the sample credentials exist. Which would you like next?
+
