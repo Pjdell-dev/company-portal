@@ -12,24 +12,27 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    // Use session cookie-based auth: ensure user is present in storage (set at login)
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
       navigate('/');
       return;
     }
 
-    axios.get('http://localhost:8000/api/modules', {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(res => {
-      setModulesData(res.data);
-      setFilteredData(res.data);
-    }).catch(err => {
-      console.error('Failed to load modules:', err);
-      if (err.response?.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/');
-      }
-    });
+    // Request modules with credentials (cookies) instead of Authorization header
+    axios.get('http://localhost:8000/api/modules', { withCredentials: true })
+      .then(res => {
+        setModulesData(res.data);
+        setFilteredData(res.data);
+      }).catch(err => {
+        console.error('Failed to load modules:', err);
+        // If unauthenticated, clear storage and redirect to login
+        if (err.response?.status === 401 || err.response?.status === 419) {
+          localStorage.removeItem('user');
+          localStorage.removeItem('company');
+          navigate('/');
+        }
+      });
   }, [navigate]);
 
   useEffect(() => {
@@ -76,6 +79,20 @@ export default function Dashboard() {
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
   const storedCompany = JSON.parse(localStorage.getItem('company') || '{}');
 
+  const handleLogout = async () => {
+    try {
+      // Use cookie based logout
+      await axios.post('http://localhost:8000/api/logout', {}, { withCredentials: true });
+    } catch (err) {
+      console.warn('Logout failed on server:', err);
+    } finally {
+      localStorage.removeItem('user');
+      localStorage.removeItem('company');
+      localStorage.removeItem('token');
+      navigate('/');
+    }
+  };
+
   return (
     <div className="dashboard">
       {/* Sidebar */}
@@ -89,6 +106,9 @@ export default function Dashboard() {
           </div>
           <div className="text-xs mt-1 opacity-75">
             User: {storedUser.full_name || 'Guest'}
+          </div>
+          <div className="mt-3">
+            <button className="btn-secondary" onClick={handleLogout}>Logout</button>
           </div>
         </div>
 
