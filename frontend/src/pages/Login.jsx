@@ -49,12 +49,13 @@ export default function Login() {
         company_code: companyCode,
       });
 
-      localStorage.setItem('token', res.data.token);
+      // Store session user and company returned by server
+      localStorage.setItem('user', JSON.stringify(res.data.user));
       localStorage.setItem('company', JSON.stringify(res.data.company));
 
       // Apply theme
-      document.documentElement.style.setProperty('--primary', res.data.company.primary_color);
-      document.documentElement.style.setProperty('--accent', res.data.company.accent_color || '#ccc');
+  document.documentElement.style.setProperty('--primary', res.data.company.primary_color);
+  document.documentElement.style.setProperty('--accent', res.data.company.accent_color || '#ccc');
 
       navigate('/dashboard');
     } catch (err) {
